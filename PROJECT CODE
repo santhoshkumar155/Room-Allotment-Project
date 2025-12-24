@@ -1,0 +1,138 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+/* ---------- Hash Function ---------- */
+long long generateHash(string data) {
+    const int prime = 31;
+    const int mod = 1000000007;
+    long long hash = 0;
+
+    for (char c : data) {
+        hash = (hash * prime + c) % mod;
+    }
+    return hash;
+}
+
+/* ---------- Student Structure ---------- */
+class Student {
+public:
+    string studentId;
+    string name;
+
+    Student(string id, string n) {
+        studentId = id;
+        name = n;
+    }
+};
+
+/* ---------- Room Structure ---------- */
+class Room {
+public:
+    string roomId;
+    bool isAllotted;
+
+    Room(string id) {
+        roomId = id;
+        isAllotted = false;
+    }
+};
+
+/* ---------- Room Allotment System ---------- */
+class RoomAllotmentSystem {
+private:
+    vector<Student> students;
+    vector<Room> rooms;
+    unordered_map<long long, string> allotmentHash; // hash → studentId
+
+public:
+    void registerStudent() {
+        string id, name;
+        cout << "Enter Student ID: ";
+        cin >> id;
+        cout << "Enter Student Name: ";
+        cin.ignore();
+        getline(cin, name);
+
+        students.push_back(Student(id, name));
+        cout << "Student registered successfully!\n";
+    }
+
+    void registerRoom() {
+        string roomId;
+        cout << "Enter Room ID: ";
+        cin >> roomId;
+
+        rooms.push_back(Room(roomId));
+        cout << "Room registered successfully!\n";
+    }
+
+    void allotRoom() {
+        if (students.empty() || rooms.empty()) {
+            cout << "No students or rooms available!\n";
+            return;
+        }
+
+        string studentId;
+        cout << "Enter Student ID for allotment: ";
+        cin >> studentId;
+
+        for (auto &room : rooms) {
+            if (!room.isAllotted) {
+                string data = studentId + room.roomId;
+                long long hash = generateHash(data);
+
+                if (allotmentHash.find(hash) != allotmentHash.end()) {
+                    cout << "⚠ Hash Collision Detected! Re-allotment needed.\n";
+                    return;
+                }
+
+                room.isAllotted = true;
+                allotmentHash[hash] = studentId;
+
+                cout << "Room " << room.roomId << " allotted to Student "
+                     << studentId << "\n";
+                cout << "Verification Hash: " << hash << endl;
+                return;
+            }
+        }
+        cout << "No available rooms!\n";
+    }
+
+    void verifyAllotments() {
+        cout << "\n--- Allotment Verification Report ---\n";
+        for (auto &entry : allotmentHash) {
+            cout << "Hash: " << entry.first
+                 << " | Student ID: " << entry.second << endl;
+        }
+    }
+};
+
+/* ---------- Main Function ---------- */
+int main() {
+    RoomAllotmentSystem system;
+    int choice;
+
+    do {
+        cout << "\n===== ROOM ALLOTMENT SYSTEM =====\n";
+        cout << "1. Register Student\n";
+        cout << "2. Register Room\n";
+        cout << "3. Allot Room\n";
+        cout << "4. Verify Allotments\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: system.registerStudent(); break;
+            case 2: system.registerRoom(); break;
+            case 3: system.allotRoom(); break;
+            case 4: system.verifyAllotments(); break;
+            case 5: cout << "Exiting system...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while (choice != 5);
+
+    return 0;
+}
